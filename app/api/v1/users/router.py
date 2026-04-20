@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.users import controller
 
-router = APIRouter(prefix="/analytics/api/v1/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 router.add_api_route("/", controller.list_users, methods=["GET"])
 router.add_api_route("/", controller.create_user, methods=["POST"])
