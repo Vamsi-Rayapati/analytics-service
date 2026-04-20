@@ -1,21 +1,24 @@
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+import clickhouse_connect
+from clickhouse_connect.driver.asyncclient import AsyncClient
 
 from app.config import settings
 
-engine = create_async_engine(settings.database_url, echo=True)
-
-AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+_client: AsyncClient | None = None
 
 
-class Base(DeclarativeBase):
-    pass
+async def get_clickhouse_client() -> AsyncClient:
+    global _client
+    if _client is None:
+        _client = await clickhouse_connect.get_async_client(
+            host=settings.DB_HOST,
+            port=settings.DB_PORT,
+            username=settings.DB_USER,
+            password=settings.DB_PASSWORD,
+            database=settings.DB_NAME,
+        )
+    return _client
 
 
-async def get_db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        yield session
+async def get_db() -> AsyncClient:
+    client = await get_clickhouse_client()
+    yield client
